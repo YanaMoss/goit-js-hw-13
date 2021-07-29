@@ -5,41 +5,71 @@ import { getImages } from './js/getImages';
 import card from'./templates/card.hbs';
 import _, { divide } from 'lodash';
 import Notiflix from 'notiflix'
+import SimpleLightbox from 'simplelightbox';
+import 'simplelightbox/dist/simple-lightbox.min.css';
 
 const DEBOUNCE_DELAY = 300;
-let dataImages = {};
 let page = 1;
-const limit = 40;
+const limit = 4;
 const searchQuery = document.querySelector('input');
 const searchButton = document.querySelector('button')
+const loadMoreButton = document.querySelector('.load-more');
 const gallery = document.querySelector('.gallery');
+let dataImages = [];
+let requestName = ' ';
+let name = ' ';
+window.onload = () => {
+   // !!Добавляю атрибут value in input
+   searchQuery.addEventListener('input', _.debounce(getSearchQuery, DEBOUNCE_DELAY));
+   function getSearchQuery(event) {
+      if (event.target.value.trim() !== '') {
+         name = event.target.value;
+         searchQuery.setAttribute('value', name);
+      };
+   };
 
-searchQuery.addEventListener('input', _.debounce(getSearchQuery, DEBOUNCE_DELAY));
-searchButton.addEventListener('click', sendSearchQuery)
+   searchButton.addEventListener('click', sendSearchQuery);
 
-function getSearchQuery(event) {
-   let name = event.target.value;
-   searchQuery.setAttribute('value', name);   
-}
+   function sendSearchQuery(event) {
+      event.preventDefault();
+      renderImage();
+   
+   };
 
-function sendSearchQuery() {
-   let requestName = searchQuery.getAttribute('value');
-   console.log(requestName);
-   console.log(page);
-   console.log(limit);
-   getImages(requestName, page, limit)
-      .then((response) => {
-         dataImages = response.hits;
-         console.log(dataImages);
-         renderImages(dataImages);
-      })
-      .catch((err) => {
-      console.log('OOOOOOOOOOO')
-   })
+   loadMoreButton.addEventListener('click', getLoadMore);
+
+   function getLoadMore(event) {
+      event.preventDefault();
+      page += 1;
+      console.log(page);
+      console.log(requestName);
+      console.log(limit);
+      renderImage();
+      if (dataImages.length === response.totalHits) {
+         Notiflix.Notify.Info("We're sorry, but you've reached the end of search results.");
+      } else if (dataImages.length >= response.totalHits){
+         loadMoreButton.classList.add(".to-hidden");
+      };
+   };
+
+   function renderImage() {
+      if (name !== requestName) {
+         dataImages = [ ];
+      }
+      requestName = searchQuery.getAttribute('value');
+      getImages(requestName, page, limit)
+         .then((response) => {
+            if (response.hits.length === 0) {
+               throw new Error('Sorry, there are no images matching your search query. Please try again.');
+            }
+            dataImages.push(...response.hits)
+            gallery.innerHTML = card(dataImages);
+            console.log(dataImages)
+            console.log(response);
+         })
+         .catch((err) => {
+            Notiflix.Notify.Failure(err.message)
+         });
+   
+   };
 };
-
-function renderImages (dataImages) {
-   gallery.innerHTML = card(dataImages);
-   
-}
-   

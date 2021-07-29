@@ -18,20 +18,27 @@
     />
   </head>
   <body>
-    <header>
-      <div class="container-header">
-        <form class="search-form" id="search-form">
-          <input type="text" name="searchQuery" autocomplete="off" placeholder="Search images..." />
-          <button type="button">
-            <svg width="16" height="12">
-              <use href="./image/sprite.svg#icon-search"></use>
-            </svg>
-          </button>
-        </form>
-      </div>
-    </header>
-    <div class="gallery"></div>
-    <button type="button" class="load-more">Load more</button>
+    <div class="container">
+      <header>
+        <div class="container-header">
+          <form class="search-form" id="search-form">
+            <input
+              type="text"
+              name="searchQuery"
+              autocomplete="off"
+              placeholder="Search images..."
+            />
+            <button type="submit">
+              <svg width="16" height="12">
+                <use href="./image/sprite.svg#icon-search"></use>
+              </svg>
+            </button>
+          </form>
+        </div>
+      </header>
+      <div class="gallery"></div>
+      <button type="button" class="load-more">Load more</button>
+    </div>
     <script src="./index.js"></script>
   </body>
 </html>
