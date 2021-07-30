@@ -42,7 +42,6 @@ window.onload = () => {
       event.preventDefault();
       dataImages = [];
       renderImage();
-      lightbox.refresh();
        
    };
 
