@@ -9,15 +9,16 @@ import SimpleLightbox from 'simplelightbox';
 import 'simplelightbox/dist/simple-lightbox.min.css';
 
 const DEBOUNCE_DELAY = 300;
-let page = 1;
-const limit = 4;
+const limit = 100;
 const searchQuery = document.querySelector('input');
 const searchButton = document.querySelector('button')
 const loadMoreButton = document.querySelector('.load-more');
 const gallery = document.querySelector('.gallery');
+let page = 1;
 let dataImages = [];
 let requestName = ' ';
 let name = ' ';
+let totalHits = ' 1';
 window.onload = () => {
    // !!Добавляю атрибут value in input
    searchQuery.addEventListener('input', _.debounce(getSearchQuery, DEBOUNCE_DELAY));
@@ -25,6 +26,8 @@ window.onload = () => {
       if (event.target.value.trim() !== '') {
          name = event.target.value;
          searchQuery.setAttribute('value', name);
+         searchButton.removeAttribute("disabled");
+         dataImages = [];
       };
    };
 
@@ -33,6 +36,9 @@ window.onload = () => {
    function sendSearchQuery(event) {
       event.preventDefault();
       renderImage();
+      searchButton.setAttribute("disabled", "disabled");
+      Notiflix.Notify.Info(`'Hooray! We found ${response.totalHits} images.'`);
+      
    
    };
 
@@ -40,16 +46,12 @@ window.onload = () => {
 
    function getLoadMore(event) {
       event.preventDefault();
-      page += 1;
-      console.log(page);
-      console.log(requestName);
-      console.log(limit);
-      renderImage();
-      if (dataImages.length === response.totalHits) {
-         Notiflix.Notify.Info("We're sorry, but you've reached the end of search results.");
-      } else if (dataImages.length >= response.totalHits){
-         loadMoreButton.classList.add(".to-hidden");
-      };
+      if (dataImages.length >= totalHits) {
+         Notiflix.Notify.Failure("We're sorry, but you've reached the end of search results.")
+      } else {
+         page += 1;
+         renderImage();
+      }
    };
 
    function renderImage() {
@@ -62,13 +64,14 @@ window.onload = () => {
             if (response.hits.length === 0) {
                throw new Error('Sorry, there are no images matching your search query. Please try again.');
             }
+            loadMoreButton.classList.remove('is-hidden');
             dataImages.push(...response.hits)
+            totalHits = response.totalHits;
             gallery.innerHTML = card(dataImages);
-            console.log(dataImages)
-            console.log(response);
          })
          .catch((err) => {
             Notiflix.Notify.Failure(err.message)
+            loadMoreButton.classList.add('is-hidden')
          });
    
    };
