@@ -1,5 +1,4 @@
 'use strict'
-
 import './sass/main.scss';
 import { getImages } from './js/getImages';
 import card from'./templates/card.hbs';
@@ -8,71 +7,76 @@ import Notiflix from 'notiflix'
 import SimpleLightbox from 'simplelightbox';
 import 'simplelightbox/dist/simple-lightbox.min.css';
 
+
 const DEBOUNCE_DELAY = 300;
 const limit = 100;
 const searchQuery = document.querySelector('input');
 const searchButton = document.querySelector('button')
 const loadMoreButton = document.querySelector('.load-more');
-const gallery = document.querySelector('.gallery');
+const galleryImages = document.querySelector('.gallery');
+const image = document.querySelector('.img');
+
+
 let page = 1;
 let dataImages = [];
 let requestName = ' ';
 let name = ' ';
-let totalHits = ' 1';
+let totalHits = ' ';
+
 window.onload = () => {
-   // !!Добавляю атрибут value in input
    searchQuery.addEventListener('input', _.debounce(getSearchQuery, DEBOUNCE_DELAY));
+   searchButton.addEventListener('click', sendSearchQuery);
+   loadMoreButton.addEventListener('click', getLoadMore);
+
    function getSearchQuery(event) {
-      if (event.target.value.trim() !== '') {
+      if (event.target.value && event.target.value.trim() !== '') {
          name = event.target.value;
          searchQuery.setAttribute('value', name);
-         searchButton.removeAttribute("disabled");
-         dataImages = [];
-      };
+      } else {
+         searchQuery.removeAttribute('value');
+      }
    };
-
-   searchButton.addEventListener('click', sendSearchQuery);
 
    function sendSearchQuery(event) {
-      event.preventDefault();
-      renderImage();
-      searchButton.setAttribute("disabled", "disabled");
-      Notiflix.Notify.Info(`'Hooray! We found ${response.totalHits} images.'`);
       
-   
+      event.preventDefault();
+      dataImages = [];
+      renderImage();
+      lightbox.refresh();
+       
    };
-
-   loadMoreButton.addEventListener('click', getLoadMore);
 
    function getLoadMore(event) {
       event.preventDefault();
       if (dataImages.length >= totalHits) {
          Notiflix.Notify.Failure("We're sorry, but you've reached the end of search results.")
+          loadMoreButton.classList.add('is-hidden')
       } else {
          page += 1;
          renderImage();
-      }
+      };
    };
 
-   function renderImage() {
-      if (name !== requestName) {
-         dataImages = [ ];
-      }
+   async function renderImage() {
       requestName = searchQuery.getAttribute('value');
-      getImages(requestName, page, limit)
-         .then((response) => {
-            if (response.hits.length === 0) {
-               throw new Error('Sorry, there are no images matching your search query. Please try again.');
-            }
+      await getImages(requestName, page, limit)
+            .then((response) => {
             loadMoreButton.classList.remove('is-hidden');
             dataImages.push(...response.hits)
             totalHits = response.totalHits;
-            gallery.innerHTML = card(dataImages);
+            galleryImages.innerHTML = card(dataImages);
          })
          .catch((err) => {
-            Notiflix.Notify.Failure(err.message)
             loadMoreButton.classList.add('is-hidden')
          });
-   
+      if (dataImages.length === undefined || dataImages.length === 0) {
+         Notiflix.Notify.Failure('Sorry, there are no images matching your search query. Please try again.');
+         loadMoreButton.classList.add('is-hidden')
+
+      } else {
+         if (page === 1) {
+            Notiflix.Notify.Info(`'Hooray! We found ${totalHits} images.'`);
+         };
+      }     
    };
 };
