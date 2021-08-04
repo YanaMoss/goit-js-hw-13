@@ -4,19 +4,19 @@ import { getImages } from './js/getImages';
 import card from'./templates/card.hbs';
 import _, { divide } from 'lodash';
 import Notiflix from 'notiflix'
-import SimpleLightbox from 'simplelightbox';
-import 'simplelightbox/dist/simple-lightbox.min.css';
+import 'simplelightbox'
+// import 'simplelightbox/dist/simple-lightbox.min.css';
 
 
 const DEBOUNCE_DELAY = 300;
-const limit = 100;
+const limit = 100; 
 const searchQuery = document.querySelector('input');
 const searchButton = document.querySelector('button')
 const loadMoreButton = document.querySelector('.load-more');
 const galleryImages = document.querySelector('.gallery');
-const image = document.querySelector('.img');
+const cardPhoto = document.querySelector('.photo-card')
 
-
+let gallery;
 let page = 1;
 let dataImages = [];
 let requestName = ' ';
@@ -38,11 +38,11 @@ window.onload = () => {
    };
 
    function sendSearchQuery(event) {
-      
       event.preventDefault();
       dataImages = [];
       renderImage();
-       
+      
+      
    };
 
    function getLoadMore(event) {
@@ -64,6 +64,7 @@ window.onload = () => {
             dataImages.push(...response.hits)
             totalHits = response.totalHits;
             galleryImages.innerHTML = card(dataImages);
+            gallery = new SimpleLightbox('.gallery a');   
          })
          .catch((err) => {
             loadMoreButton.classList.add('is-hidden')
@@ -78,4 +79,11 @@ window.onload = () => {
          };
       }     
    };
+
+   cardPhoto.addEventListener('click', openImage);
+
+   function openImage(event) {
+      gallery.open();      
+   }
+
 };
